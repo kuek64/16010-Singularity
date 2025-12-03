@@ -78,8 +78,7 @@ public class BlueSoloDrive extends OpMode {
         telemetry.addData("X: ", follower.getPose().getX());
         telemetry.addData("Y: ", follower.getPose().getY());
         telemetry.addData("Heading: ", follower.getPose().getHeading());
-        telemetry.addData("Turret Pos: ", shooter.getPos());
-        telemetry.addData("Intake Current: ", intake.getCurrent());
+        telemetry.addData("Flywheel Error: ", shooter.getVelError());
         telemetry.update();
     }
 

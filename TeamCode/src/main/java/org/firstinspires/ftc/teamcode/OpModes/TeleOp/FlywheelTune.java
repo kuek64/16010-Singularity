@@ -21,10 +21,21 @@ public class FlywheelTune extends OpMode {
     public void loop() {
         shooter.update();
 
+        if(gamepad1.rightBumperWasPressed()) {
+            vel+=100;
+            gamepad1.rumble(100);
+        } else if(gamepad1.leftBumperWasPressed()) {
+            vel-=100;
+            gamepad1.rumble(100);
+        }
+
+        if(gamepad1.a) {
+            intake.kickSequence();
+        }
+
         shooter.setFlywheelVelocity(vel);
 
         telemetry.addData("Velocity: ", shooter.getVel());
-        telemetry.addData("Velocity Counter: ", shooter.getVel2());
         telemetry.addData("Velocity Target: ", vel);
         telemetry.addData("Distance Sensor 1: ", intake.getDistance1());
         telemetry.addData("Distance Sensor 2: ", intake.getDistance2());

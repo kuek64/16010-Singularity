@@ -18,9 +18,9 @@ import java.util.List;
 
 @Configurable
 public class ShooterSubsystem {
-    public static double turretOffsetY = -4.0;
-    public static double turretOffsetX  = 0;
-    public static double fIntercept = 570;
+    public static double turretOffsetY = 0;
+    public static double turretOffsetX  = -2;
+    public static double fIntercept = 600;
     public static double blueGoalX = 0;
     public static double blueGoalY = 144;
     public static double redGoalX  = 144;
@@ -31,22 +31,13 @@ public class ShooterSubsystem {
     private DcMotorEx turret = null;
     private RGBLight light = null;
     public static double tSlope = 5.56729166667;
-    public static double fSlope = 3.878202325;
+    public static double fSlope = 3.9;
     public static int pos = 0;
     public static int vel = 0;
-    public static double p = 200;
+    public static double p = 90;
     public static double i = 0;
-    public static double d = 60;
-    public static double f = 20;
-    public static double sp = 300;
-    public static double si = 0;
-    public static double sd = 50;
-    public static double sf = 0;
-    public static double cp = 200;
-    public static double ci = 0;
-    public static double cd = 10;
-    public static double cf = 0;
-    public static double counterFactor = -1.1;
+    public static double d = 0;
+    public static double f = 17.5;
 
     public ShooterSubsystem(HardwareMap hardwareMap) {
         turret = hardwareMap.get(DcMotorEx.class, "turret");
@@ -60,10 +51,8 @@ public class ShooterSubsystem {
         flywheel2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        flywheel1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         flywheel2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        flywheel1.setVelocityPIDFCoefficients(cp, ci, cd, cf);
         flywheel2.setVelocityPIDFCoefficients(p, i, d, f);
     }
 
@@ -75,15 +64,9 @@ public class ShooterSubsystem {
     }
 
     public void setFlywheelVelocity(int vel) {
-        /*if(Math.abs(flywheel2.getVelocity() - vel) > 100) {
-            flywheel2.setVelocityPIDFCoefficients(p, i, d, f); }
-        else {
-            flywheel2.setVelocityPIDFCoefficients(sp, si, sd, sf);
-        }*/
-        flywheel2.setVelocityPIDFCoefficients(p,i,d,f);
-        flywheel1.setVelocityPIDFCoefficients(cp,ci,cd,cf);
+        flywheel2.setVelocityPIDFCoefficients(p, i, d, f);
         flywheel2.setVelocity(vel);
-        flywheel1.setVelocity(vel*counterFactor);
+        flywheel1.setPower(flywheel2.getPower());
     }
 
     public void update() {
@@ -116,6 +99,7 @@ public class ShooterSubsystem {
             }
 
             double distance = Math.hypot(goalX - x, goalY - y);
+            distance = (int) distance;
             vel = (int) (distance * fSlope + fIntercept);
 
             setFlywheelVelocity(vel);
@@ -123,7 +107,7 @@ public class ShooterSubsystem {
     }
 
     public void ready() {
-        if((Math.abs(turret.getCurrentPosition() - pos) < 5) && (Math.abs(flywheel1.getVelocity() - vel) < 80)) {
+        if((Math.abs(turret.getCurrentPosition() - pos) < 5) && (Math.abs(flywheel2.getVelocity() - vel) < 20)) {
             light.green();
         } else {
             light.red();
@@ -137,8 +121,8 @@ public class ShooterSubsystem {
         return flywheel2.getVelocity();
     }
 
-    public double getVel2() {
-        return flywheel1.getVelocity();
+    public double getVelError() {
+        return Math.abs(flywheel2.getVelocity() - vel);
     }
 
     public void telemetry() {
