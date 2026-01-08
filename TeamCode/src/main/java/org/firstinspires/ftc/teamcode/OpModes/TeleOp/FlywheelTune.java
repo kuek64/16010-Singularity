@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.OpModes.TeleOp;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -10,15 +12,20 @@ import org.firstinspires.ftc.teamcode.Subsystems.IntakeSubsystem;
 @Configurable
 @TeleOp(name = "Flywheel Tuning", group = "TeleOp")
 public class FlywheelTune extends OpMode {
+    public TelemetryManager teleM;
     ShooterSubsystem shooter;
     IntakeSubsystem intake;
     public static int vel = 0;
+    private double fError;
     public void init() {
         shooter = new ShooterSubsystem(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap);
+
+        teleM = PanelsTelemetry.INSTANCE.getTelemetry();
     }
 
     public void loop() {
+        intake.update();
         shooter.update();
 
         if(gamepad1.rightBumperWasPressed()) {
@@ -35,9 +42,13 @@ public class FlywheelTune extends OpMode {
 
         shooter.setFlywheelVelocity(vel);
 
-        telemetry.addData("Velocity: ", shooter.getVel());
-        telemetry.addData("Velocity Target: ", vel);
-        telemetry.addData("Distance Sensor 1: ", intake.getDistance1());
-        telemetry.addData("Distance Sensor 2: ", intake.getDistance2());
+        fError = Math.abs(vel-shooter.getVel());
+
+        teleM.addData("Velocity Target: ", vel);
+        teleM.addData("Flywheel Error: ", fError);
+        teleM.addData("Distance Sensor 1: ", intake.getDistance1());
+        teleM.addData("Distance Sensor 2: ", intake.getDistance2());
+        teleM.addData("Velocity: ", shooter.getVel());
+        teleM.update();
     }
 }

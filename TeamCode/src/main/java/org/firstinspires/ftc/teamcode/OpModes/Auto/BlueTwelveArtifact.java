@@ -24,6 +24,8 @@ public class BlueTwelveArtifact extends OpMode {
     private Timer pathTimer, opmodeTimer;
 
     private int pathState;
+    public int pos;
+    public int vel;
 
     private final Pose startPose = new Pose(29.5, 127, Math.toRadians(180));
     private final Pose scorePose = new Pose(60, 83.5, Math.toRadians(180));
@@ -46,7 +48,7 @@ public class BlueTwelveArtifact extends OpMode {
 
         grabPickup1 = follower.pathBuilder()
                 .addPath(new BezierLine(scorePose, intake1Pose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), intake1Pose.getHeading())
+                .setTangentHeadingInterpolation()
                 .addPath(new BezierLine(intake1Pose, pickup1Pose))
                 .setLinearHeadingInterpolation(intake1Pose.getHeading(), pickup1Pose.getHeading())
                 .setBrakingStrength(0.5)
@@ -59,6 +61,7 @@ public class BlueTwelveArtifact extends OpMode {
         scorePickup1 = follower.pathBuilder()
                 .addPath(new BezierLine(pickup1Pose, scorePose))
                 .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePose.getHeading())
+                .setBrakingStrength(0.5)
                 .build();
 
         grabPickup2 = follower.pathBuilder()
@@ -94,52 +97,54 @@ public class BlueTwelveArtifact extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                intake.stop();
-                shooter.setFlywheelVelocity(980);
-                shooter.setTurretPosition(245);
+                intake.partialintake();
+                vel = 940;
+                pos = 670;
+                follower.setMaxPower(1);
                 follower.followPath(scorePreload);
                 setPathState(1);
                 break;
             case 1:
-                if(pathTimer.getElapsedTimeSeconds() > 1.8) {
+                if(pathTimer.getElapsedTimeSeconds() > 1.9) {
                     intake.kickSequence();
                 }
                 if(pathTimer.getElapsedTimeSeconds() > 4.55) {
-                    intake.partialintake();
-                    follower.setMaxPower(1);
+                    intake.intake();
                     follower.followPath(grabPickup1,true);
                     setPathState(2);
                 }
                 break;
             case 2:
                 if(pathTimer.getElapsedTimeSeconds() > 3.3) {
+                    intake.partialintake();
                     follower.followPath(scorePickup1,true);
                     setPathState(3);
                 }
                 break;
             case 3:
-                if(pathTimer.getElapsedTimeSeconds() > 1.6) {
+                if(pathTimer.getElapsedTimeSeconds() > 2.2) {
                     intake.kickSequence();
                 }
-                if(pathTimer.getElapsedTimeSeconds() > 3.85) {
-                    intake.partialintake();
+                if(pathTimer.getElapsedTimeSeconds() > 3.95) {
+                    intake.intake();
                     follower.setMaxPower(1);
                     follower.followPath(grabPickup2,true);
                     setPathState(4);
                 }
                 break;
             case 4:
-                if(pathTimer.getElapsedTimeSeconds() > 2.55) {
+                if(pathTimer.getElapsedTimeSeconds() > 3.05) {
+                    intake.partialintake();
                     follower.followPath(scorePickup2, true);
                     setPathState(5);
                 }
                 break;
             case 5:
-                if(pathTimer.getElapsedTimeSeconds() > 2.25) {
+                if(pathTimer.getElapsedTimeSeconds() > 2.95) {
                     intake.kickSequence();
                 }
-                if(pathTimer.getElapsedTimeSeconds() > 4.55) {
-                    intake.partialintake();
+                if(pathTimer.getElapsedTimeSeconds() > 4.65) {
+                    intake.intake();
                     follower.setMaxPower(1);
                     follower.followPath(grabPickup3,true);
                     setPathState(6);
@@ -147,20 +152,21 @@ public class BlueTwelveArtifact extends OpMode {
                 break;
             case 6:
                 if(pathTimer.getElapsedTimeSeconds() > 3.6) {
+                    intake.partialintake();
                     follower.followPath(scorePickup3, true);
                     setPathState(7);
                 }
                 break;
             case 7:
-                if(pathTimer.getElapsedTimeSeconds() > 2.75) {
+                if(pathTimer.getElapsedTimeSeconds() > 3.05) {
                     intake.kickSequence();
                 }
-                if(pathTimer.getElapsedTimeSeconds() > 5.6) {
+                if(pathTimer.getElapsedTimeSeconds() > 5.4) {
                     setPathState(8);
                 }
                 break;
             case 8:
-                shooter.setTurretPosition(0);
+                pos = 0;
                 follower.followPath(leave);
                 setPathState(-1);
         }
@@ -193,6 +199,8 @@ public class BlueTwelveArtifact extends OpMode {
         intake.overIntake();
         follower.update();
         shooter.update();
+        shooter.setTurretPosition(pos);
+        shooter.setFlywheelVelocity(vel);
         intake.update();
         autonomousPathUpdate();
         telemetry.addData("Path State: ", pathState);

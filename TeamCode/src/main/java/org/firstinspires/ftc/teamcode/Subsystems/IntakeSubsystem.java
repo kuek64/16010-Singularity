@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Subsystems;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -13,6 +14,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
+@Configurable
 public class IntakeSubsystem {
     public enum IntakeState {
         INTAKE, STOP, REVERSE, PARTIALINTAKE
@@ -25,12 +27,18 @@ public class IntakeSubsystem {
     private DistanceSensor dsensor;
     private DistanceSensor dsensor2;
     private boolean kBoolean = false;
+    public static double kick = 0;
+    public static double set = 0.3;
+    public static double intakeWaitTime = 0.1;
+    public static double setWaitTime = 0.25;
 
     public IntakeSubsystem(HardwareMap hardwareMap) {
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         kicker = hardwareMap.get(Servo.class, "kicker");
         dsensor = hardwareMap.get(DistanceSensor.class, "csensor");
         dsensor2 = hardwareMap.get(DistanceSensor.class, "csensor2");
+
+        intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         kickerTimer = new Timer();
         kTimer = new Timer();
@@ -52,7 +60,7 @@ public class IntakeSubsystem {
             intake.setPower(-1);
             istate = IntakeState.REVERSE;
         } else if(istate == IntakeState.PARTIALINTAKE) {
-            intake.setPower(1);
+            intake.setPower(0.15);
         }
     }
 
@@ -90,8 +98,8 @@ public class IntakeSubsystem {
     }
 
     public void overIntake() {
-        if(intake.getCurrent(CurrentUnit.AMPS) > 4) {
-
+        if(intake.getCurrent(CurrentUnit.AMPS) > 8) {
+            partialintake();
         }
     }
 
@@ -132,13 +140,13 @@ public class IntakeSubsystem {
                 }
                 break;
             case 2:
-                if (kTimer.getElapsedTimeSeconds() > 0.225) {
+                if (kTimer.getElapsedTimeSeconds() > setWaitTime) {
                     set();
                     setKickState(3);
                 }
                 break;
             case 3:
-                if (kTimer.getElapsedTimeSeconds() > 0.225) {
+                if (kTimer.getElapsedTimeSeconds() > intakeWaitTime) {
                     intake();
                     setKickState(-1);
                 }
@@ -157,11 +165,11 @@ public class IntakeSubsystem {
     }
 
     public void kick() {
-        kicker.setPosition(0);
+        kicker.setPosition(kick);
     }
 
     public void set() {
-        kicker.setPosition(0.25);
+        kicker.setPosition(set);
     }
 
     public void update() {

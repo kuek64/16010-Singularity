@@ -23,7 +23,7 @@ public class RedSoloDrive extends OpMode {
     public IntakeSubsystem intake;
 
     public static Follower follower;
-    public static Pose resetPose = new Pose(72,72,Math.toRadians(90));
+    public static Pose resetPose = new Pose(8,7,Math.toRadians(90));
     private PathChain pathChain;
 
     public void init() {
@@ -50,10 +50,13 @@ public class RedSoloDrive extends OpMode {
         follower.update();
         shooter.update();
         intake.update();
+        shooter.alignTurret(follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), false, telemetry);
 
         follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
 
-        shooter.alignTurret(follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), false, telemetry);
+        if(gamepad1.rightBumperWasPressed()) {
+            shooter.driftAdjust();
+        }
 
         if(gamepad1.xWasPressed()) {
             intake.switchIntake();
@@ -64,7 +67,9 @@ public class RedSoloDrive extends OpMode {
         }
 
         if(gamepad1.a) {
-            intake.kickSequence();
+            if(shooter.getVelError() < 10) {
+                intake.kickSequence();
+            }
         }
 
         if(gamepad1.right_stick_button) {
@@ -76,6 +81,7 @@ public class RedSoloDrive extends OpMode {
         telemetry.addData("Heading: ", follower.getPose().getHeading());
         telemetry.addData("Turret Pos: ", shooter.getPos());
         telemetry.addData("Intake Current: ", intake.getCurrent());
+        telemetry.addData("Shooter Error: ", shooter.getVelError());
         telemetry.update();
     }
 

@@ -23,7 +23,8 @@ public class RedFarSide extends OpMode {
     private Timer pathTimer, opmodeTimer;
 
     private int pathState;
-
+    public int pos;
+    public int vel;
     private final Pose bluestartPose = new Pose(62, 10, Math.toRadians(90));
     private final Pose bluescorePose = new Pose(62, 10, Math.toRadians(90));
     private final Pose bluepickup1Pose = new Pose(10.75, 13, Math.toRadians(225));
@@ -61,9 +62,9 @@ public class RedFarSide extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                intake.stop();
-                shooter.setFlywheelVelocity(1500);
-                shooter.setTurretPosition(125);
+                intake.partialintake();
+                vel = 1050;
+                pos = 300;
                 setPathState(1);
                 break;
             case 1:
@@ -71,7 +72,7 @@ public class RedFarSide extends OpMode {
                     intake.kickSequence();
                 }
                 if (pathTimer.getElapsedTimeSeconds() > 4.55) {
-                    intake.partialintake();
+                    intake.intake();
                     follower.setMaxPower(1);
                     follower.followPath(grabPickup1, true);
                     setPathState(2);
@@ -79,7 +80,7 @@ public class RedFarSide extends OpMode {
                 break;
             case 2:
                 if (pathTimer.getElapsedTimeSeconds() > 2.2) {
-                    intake.stop();
+                    intake.partialintake();
                 }
                 if (pathTimer.getElapsedTimeSeconds() > 2.5) {
                     follower.followPath(scorePickup1, true);
@@ -91,7 +92,7 @@ public class RedFarSide extends OpMode {
                     intake.kickSequence();
                 }
                 if (pathTimer.getElapsedTimeSeconds() > 4.5) {
-                    intake.partialintake();
+                    intake.intake();
                     follower.setMaxPower(1);
                     follower.followPath(grabPickup1, true);
                     setPathState(4);
@@ -99,7 +100,7 @@ public class RedFarSide extends OpMode {
                 break;
             case 4:
                 if (pathTimer.getElapsedTimeSeconds() > 2.2) {
-                    intake.stop();
+                    intake.partialintake();
                 }
                 if (pathTimer.getElapsedTimeSeconds() > 2.5) {
                     follower.followPath(scorePickup1, true);
@@ -111,7 +112,7 @@ public class RedFarSide extends OpMode {
                     intake.kickSequence();
                 }
                 if (pathTimer.getElapsedTimeSeconds() > 4.5) {
-                    intake.partialintake();
+                    intake.intake();
                     follower.setMaxPower(1);
                     follower.followPath(grabPickup1, true);
                     setPathState(6);
@@ -119,7 +120,7 @@ public class RedFarSide extends OpMode {
                 break;
             case 6:
                 if (pathTimer.getElapsedTimeSeconds() > 2.2) {
-                    intake.stop();
+                    intake.partialintake();
                 }
                 if (pathTimer.getElapsedTimeSeconds() > 2.5) {
                     follower.followPath(scorePickup1, true);
@@ -131,7 +132,7 @@ public class RedFarSide extends OpMode {
                     intake.kickSequence();
                 }
                 if(pathTimer.getElapsedTimeSeconds() > 4.5) {
-                    shooter.setTurretPosition(0);
+                    pos = 0;
                     shooter.setFlywheelVelocity(0);
                     follower.followPath(leave);
                     setPathState(-1);
@@ -167,6 +168,8 @@ public class RedFarSide extends OpMode {
         follower.update();
         shooter.update();
         intake.update();
+        shooter.setTurretPosition(pos);
+        shooter.setFlywheelVelocity(vel);
         autonomousPathUpdate();
         telemetry.addData("Path State: ", pathState);
         telemetry.addData("X: ", follower.getPose().getX());

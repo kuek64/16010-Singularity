@@ -25,9 +25,7 @@ public class BlueDualDrive extends OpMode {
     public IntakeSubsystem intake;
 
     public static Follower follower;
-    public static Pose resetPose = new Pose(72,72,Math.toRadians(90));
-    public static Pose parkPose = new Pose(110, 39.5, Math.toRadians(90));
-
+    public static Pose resetPose = new Pose(136,7,Math.toRadians(90));
     private Supplier<PathChain> pathChain;
 
     public void init() {
@@ -54,25 +52,26 @@ public class BlueDualDrive extends OpMode {
         follower.update();
         shooter.update();
         intake.update();
+        shooter.alignTurret(follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), true, telemetry);
+
+        if(gamepad2.rightBumperWasPressed()) {
+            shooter.driftAdjust();
+        }
 
         follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
-
-        shooter.alignTurret(follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), true, telemetry);
 
         if(gamepad2.xWasPressed()) {
             intake.switchIntake();
         }
 
-        if(gamepad2.b) {
+        if(gamepad2.bWasPressed()) {
             intake.reverse();
         }
 
         if(gamepad2.a) {
-            intake.kickSequence();
-        }
-
-        if(gamepad1.back) {
-            follower.holdPoint(parkPose);
+            if(shooter.getVelError() < 10) {
+                intake.kickSequence();
+            }
         }
 
         if(gamepad1.right_stick_button) {

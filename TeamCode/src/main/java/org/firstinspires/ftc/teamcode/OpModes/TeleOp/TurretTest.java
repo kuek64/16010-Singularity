@@ -20,7 +20,8 @@ public class TurretTest extends OpMode {
 
         shooter.setTurretPosition(pos);
 
-        telemetry.addData("Velocity: ", shooter.getPos());
-        telemetry.addData("Velocity Target: ", pos);
+        telemetry.addData("Position: ", shooter.getPos());
+        telemetry.addData("Position Target: ", pos);
+        telemetry.addData("Expected Power: ", ShooterSubsystem.pidf);
     }
 }
