@@ -93,42 +93,44 @@ public class ShooterSubsystem {
     }
 
     public void alignTurret(double x, double y, double heading, boolean blue, Telemetry telemetry) {
-            double headingDeg = Math.toDegrees(heading);
+        // Robot heading
+        double headingDeg = Math.toDegrees(heading);
 
-            double cos = Math.cos(heading);
-            double sin = Math.sin(heading);
+        double cos = Math.cos(heading);
+        double sin = Math.sin(heading);
 
-            double rotX = turretOffsetX * cos - turretOffsetY * sin;
-            double rotY = turretOffsetX * sin + turretOffsetY * cos;
+        double rotX = turretOffsetX * cos - turretOffsetY * sin;
+        double rotY = turretOffsetX * sin + turretOffsetY * cos;
 
-            x += rotX;
-            y += rotY;
+        x += rotX;
+        y += rotY;
 
-            double goalX = blue ? blueGoalX : redGoalX;
-            double goalY = blue ? blueGoalY : redGoalY;
+        double goalX = blue ? blueGoalX : redGoalX;
+        double goalY = blue ? blueGoalY : redGoalY;
 
-            double angleToGoal = Math.toDegrees(Math.atan2((goalX - x), (goalY - y)));
+        double targetAngleDeg = Math.toDegrees(Math.atan2(goalX - x, goalY - y)) - headingDeg - 90;
 
-            turretAngle = angleToGoal + headingDeg - 90;
+        double currentAngleDeg = turret.getCurrentPosition() / tSlope;
 
-            turretAngle = turretAngle % 360;
+        double error = targetAngleDeg - currentAngleDeg;
 
-            int targetTicks = (int) (tSlope * turretAngle);
+        while (error > 180) {error -= 360;}
 
-            final int TURRET_MIN = -1347;
-            final int TURRET_MAX = 1347;
+        while (error < -180){error += 360;}
 
-            if (targetTicks >= TURRET_MAX || targetTicks <= TURRET_MIN) {
-                pos = 0;
-            } else {
-                pos = targetTicks;
-            }
+        int targetTicks = turret.getCurrentPosition() + (int)(error * tSlope);
 
-            double distance = Math.hypot(goalX - x, goalY - y);
-            vel = (int) (distance * fSlope + fIntercept);
+        final int TURRET_MIN = -1347;
+        final int TURRET_MAX = 1347;
+        targetTicks = Math.max(TURRET_MIN, Math.min(TURRET_MAX, targetTicks));
 
-            setFlywheelVelocity(vel);
-            setTurretPosition(pos);
+        pos = targetTicks;
+
+        double distance = Math.hypot(goalX - x, goalY - y);
+        vel = (int)(distance * fSlope + fIntercept);
+
+        setFlywheelVelocity(vel);
+        setTurretPosition(pos);
     }
 
     public void ready() {

@@ -98,7 +98,7 @@ public class BlueTwelveArtifact extends OpMode {
         switch (pathState) {
             case 0:
                 intake.partialintake();
-                vel = 940;
+                vel = 980;
                 pos = 670;
                 follower.setMaxPower(1);
                 follower.followPath(scorePreload);
