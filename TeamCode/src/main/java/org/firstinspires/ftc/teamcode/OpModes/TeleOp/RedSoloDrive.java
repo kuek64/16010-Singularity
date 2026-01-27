@@ -46,7 +46,6 @@ public class RedSoloDrive extends OpMode {
     }
 
     public void loop() {
-        intake.overIntake();
         follower.update();
         shooter.update();
         intake.update();
@@ -54,8 +53,12 @@ public class RedSoloDrive extends OpMode {
 
         follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
 
-        if(gamepad1.rightBumperWasPressed()) {
-            shooter.driftAdjust();
+        if(gamepad2.rightBumperWasPressed()) {
+            shooter.driftAdjustPlus();
+        }
+
+        if(gamepad2.leftBumperWasPressed()) {
+            shooter.driftAdjustSubtract();
         }
 
         if(gamepad1.xWasPressed()) {
@@ -64,6 +67,12 @@ public class RedSoloDrive extends OpMode {
 
         if(gamepad1.bWasPressed()) {
             intake.reverse();
+        }
+
+        if(gamepad1.b) {
+            intake.kick();
+        } else {
+            intake.set();
         }
 
         if(gamepad1.a) {

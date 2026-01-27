@@ -37,7 +37,23 @@ public class FlywheelTune extends OpMode {
         }
 
         if(gamepad1.a) {
-            intake.kickSequence();
+            intake.intake();
+        } else {
+            intake.stop();
+        }
+
+        if(gamepad1.b) {
+            intake.kick();
+        } else {
+            intake.set();
+        }
+
+        if(gamepad1.x) {
+            intake.open();
+        }
+
+        if(gamepad1.y) {
+            intake.close();
         }
 
         shooter.setFlywheelVelocity(vel);
@@ -46,8 +62,6 @@ public class FlywheelTune extends OpMode {
 
         teleM.addData("Velocity Target: ", vel);
         teleM.addData("Flywheel Error: ", fError);
-        teleM.addData("Distance Sensor 1: ", intake.getDistance1());
-        teleM.addData("Distance Sensor 2: ", intake.getDistance2());
         teleM.addData("Velocity: ", shooter.getVel());
         teleM.update();
     }

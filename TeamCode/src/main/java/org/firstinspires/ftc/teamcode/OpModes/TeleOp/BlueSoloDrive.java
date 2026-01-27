@@ -45,21 +45,12 @@ public class BlueSoloDrive extends OpMode {
     }
 
     public void loop() {
-        intake.overIntake();
         follower.update();
         shooter.update();
         intake.update();
         shooter.alignTurret(follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), true, telemetry);
 
         follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
-
-        if(gamepad1.rightBumperWasPressed()) {
-            shooter.driftAdjust();
-        }
-
-        if(gamepad1.xWasPressed()) {
-            intake.switchIntake();
-        }
 
         if(gamepad1.bWasPressed()) {
             intake.reverse();

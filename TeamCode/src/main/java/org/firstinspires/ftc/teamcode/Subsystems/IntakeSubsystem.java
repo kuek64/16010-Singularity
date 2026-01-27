@@ -17,26 +17,26 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 @Configurable
 public class IntakeSubsystem {
     public enum IntakeState {
-        INTAKE, STOP, REVERSE, PARTIALINTAKE
+        INTAKE, STOP, REVERSE
     }
     public IntakeState istate;
     public int kState = -1;
     public Timer kickerTimer, kTimer, mTimer;
     private DcMotorEx intake;
     private Servo kicker;
-    private DistanceSensor dsensor;
-    private DistanceSensor dsensor2;
+    private Servo gate;
     private boolean kBoolean = false;
     public static double kick = 0;
     public static double set = 0.3;
+    public static double open = 0.7;
+    public static double close = 0.9;
     public static double intakeWaitTime = 0.1;
-    public static double setWaitTime = 0.25;
+    public static double setWaitTime = 0.4;
 
     public IntakeSubsystem(HardwareMap hardwareMap) {
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         kicker = hardwareMap.get(Servo.class, "kicker");
-        dsensor = hardwareMap.get(DistanceSensor.class, "csensor");
-        dsensor2 = hardwareMap.get(DistanceSensor.class, "csensor2");
+        gate = hardwareMap.get(Servo.class, "gate");
 
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -59,8 +59,6 @@ public class IntakeSubsystem {
         } else if(istate == IntakeState.REVERSE) {
             intake.setPower(-1);
             istate = IntakeState.REVERSE;
-        } else if(istate == IntakeState.PARTIALINTAKE) {
-            intake.setPower(0.15);
         }
     }
 
@@ -93,27 +91,9 @@ public class IntakeSubsystem {
         setIntakeState(IntakeState.REVERSE);
     }
 
-    public void partialintake() {
-        setIntakeState(IntakeState.PARTIALINTAKE);
-    }
-
-    public void overIntake() {
-        if(intake.getCurrent(CurrentUnit.AMPS) > 8) {
-            partialintake();
-        }
-    }
-
     public void kickSequence() {
-        double distance = dsensor.getDistance(DistanceUnit.INCH);
-        double distance2 = dsensor2.getDistance(DistanceUnit.INCH);
 
-        if ((distance <= 1 || distance2 <= 1 || kTimer.getElapsedTimeSeconds() > 1.5) && kState == -1) {
-            kickerSeriesStart();
-        }
-    }
-
-    public void kickSequenceTeleOp() {
-        if (kState == -1) {
+        if ((kTimer.getElapsedTimeSeconds() > 1.5) && kState == -1) {
             kickerSeriesStart();
         }
     }
@@ -157,13 +137,6 @@ public class IntakeSubsystem {
         }
     }
 
-    public double getDistance1() {
-        return dsensor.getDistance(DistanceUnit.INCH);
-    }
-    public double getDistance2() {
-        return dsensor2.getDistance(DistanceUnit.INCH);
-    }
-
     public void kick() {
         kicker.setPosition(kick);
     }
@@ -175,6 +148,13 @@ public class IntakeSubsystem {
     public void update() {
         intakeState();
         kickSeries();
-        overIntake();
+    }
+
+    public void open() {
+        gate.setPosition(open);
+    }
+
+    public void close() {
+        gate.setPosition(close);
     }
 }

@@ -56,8 +56,7 @@ public class BlueFarSide extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                intake.partialintake();
-                vel = 1050;
+                vel = 1290;
                 pos = -300;
                 setPathState(1);
                 break;
@@ -73,9 +72,6 @@ public class BlueFarSide extends OpMode {
                 }
                 break;
             case 2:
-                if (pathTimer.getElapsedTimeSeconds() > 2.2) {
-                    intake.partialintake();
-                }
                 if (pathTimer.getElapsedTimeSeconds() > 2.5) {
                     follower.followPath(scorePickup1, true);
                     setPathState(3);
@@ -93,9 +89,6 @@ public class BlueFarSide extends OpMode {
                 }
                 break;
             case 4:
-                if (pathTimer.getElapsedTimeSeconds() > 2.2) {
-                    intake.partialintake();
-                }
                 if (pathTimer.getElapsedTimeSeconds() > 2.5) {
                     follower.followPath(scorePickup1, true);
                     setPathState(5);
@@ -113,9 +106,6 @@ public class BlueFarSide extends OpMode {
                 }
                 break;
             case 6:
-                if (pathTimer.getElapsedTimeSeconds() > 2.2) {
-                    intake.partialintake();
-                }
                 if (pathTimer.getElapsedTimeSeconds() > 2.5) {
                     follower.followPath(scorePickup1, true);
                     setPathState(7);
@@ -158,7 +148,6 @@ public class BlueFarSide extends OpMode {
     }
 
     public void loop() {
-        intake.overIntake();
         follower.update();
         shooter.update();
         intake.update();

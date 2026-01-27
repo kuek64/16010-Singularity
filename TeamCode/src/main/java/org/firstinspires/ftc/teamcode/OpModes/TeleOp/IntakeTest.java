@@ -19,10 +19,9 @@ public class IntakeTest extends OpMode {
         intake.update();
 
         if(gamepad1.a) {
-            intake.kickSequence();
+            intake.intake();
+        } else {
+            intake.stop();
         }
-
-        telemetry.addData("Distance Sensor 1: ", intake.getDistance1());
-        telemetry.addData("Distance Sensor 2: ", intake.getDistance2());
     }
 }

@@ -48,15 +48,10 @@ public class BlueDualDrive extends OpMode {
     }
 
     public void loop() {
-        intake.overIntake();
         follower.update();
         shooter.update();
         intake.update();
         shooter.alignTurret(follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), true, telemetry);
-
-        if(gamepad2.rightBumperWasPressed()) {
-            shooter.driftAdjust();
-        }
 
         follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
 
@@ -69,9 +64,7 @@ public class BlueDualDrive extends OpMode {
         }
 
         if(gamepad2.a) {
-            if(shooter.getVelError() < 10) {
-                intake.kickSequence();
-            }
+            intake.kickSequence();
         }
 
         if(gamepad1.right_stick_button) {

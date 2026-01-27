@@ -29,7 +29,7 @@ public class Constants {
             .secondaryDrivePIDFCoefficients(new FilteredPIDFCoefficients(0.02,0,0.000005,0.6,0.01));
 
 
-    public static PathConstraints pathConstraints = new PathConstraints(0.9925, 100, 2, 1);
+    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 0.5, 0.5);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
