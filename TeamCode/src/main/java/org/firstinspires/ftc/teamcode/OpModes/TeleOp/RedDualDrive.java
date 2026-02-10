@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.OpModes.TeleOp;
 
-import static org.firstinspires.ftc.teamcode.OpModes.Auto.RedTwelveArtifact.autoEndPose;
+import static org.firstinspires.ftc.teamcode.OpModes.Auto.RedFifteenArtifact.autoEndPose;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
@@ -25,7 +25,7 @@ public class RedDualDrive extends OpMode {
     public IntakeSubsystem intake;
 
     public static Follower follower;
-    public static Pose resetPose = new Pose(7.5,9,Math.toRadians(90));
+    public static Pose resetPose = new Pose(72,72,Math.toRadians(90));
     private Supplier<PathChain> pathChain;
 
     public void init() {
@@ -51,7 +51,7 @@ public class RedDualDrive extends OpMode {
         follower.update();
         shooter.update();
         intake.update();
-        shooter.alignTurret(follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), false, telemetry);
+        shooter.alignTurret(follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), true, telemetry, follower.getVelocity().getMagnitude(), follower.getVelocity().getTheta());
 
         follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
 
@@ -64,9 +64,7 @@ public class RedDualDrive extends OpMode {
         }
 
         if(gamepad2.a) {
-            if(shooter.getVelError() < 10) {
-                intake.kickSequence();
-            }
+            intake.kickSequence();
         }
 
         if(gamepad1.right_stick_button) {

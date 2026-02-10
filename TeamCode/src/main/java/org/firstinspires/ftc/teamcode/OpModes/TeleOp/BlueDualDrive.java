@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.OpModes.TeleOp;
 
-import static org.firstinspires.ftc.teamcode.OpModes.Auto.BlueTwelveArtifact.autoEndPose;
+import static org.firstinspires.ftc.teamcode.OpModes.Auto.BlueFifteenArtifact.autoEndPose;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
@@ -25,7 +25,7 @@ public class BlueDualDrive extends OpMode {
     public IntakeSubsystem intake;
 
     public static Follower follower;
-    public static Pose resetPose = new Pose(136,7,Math.toRadians(90));
+    public static Pose resetPose = new Pose(72,72,Math.toRadians(90));
     private Supplier<PathChain> pathChain;
 
     public void init() {
@@ -45,15 +45,21 @@ public class BlueDualDrive extends OpMode {
 
     public void start() {
         follower.startTeleopDrive();
+        intake.close();
+        intake.intake();
     }
 
     public void loop() {
         follower.update();
         shooter.update();
         intake.update();
-        shooter.alignTurret(follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), true, telemetry);
+        shooter.alignTurret(follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), true, telemetry, follower.getVelocity().getMagnitude(), follower.getVelocity().getTheta());
 
         follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
+
+        if(gamepad2.aWasPressed()) {
+            intake.kickSequence();
+        }
 
         if(gamepad2.xWasPressed()) {
             intake.switchIntake();
@@ -61,10 +67,6 @@ public class BlueDualDrive extends OpMode {
 
         if(gamepad2.bWasPressed()) {
             intake.reverse();
-        }
-
-        if(gamepad2.a) {
-            intake.kickSequence();
         }
 
         if(gamepad1.right_stick_button) {

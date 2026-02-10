@@ -19,26 +19,30 @@ public class IntakeSubsystem {
     public enum IntakeState {
         INTAKE, STOP, REVERSE
     }
+
+    public enum GateState {
+        OPEN, CLOSE
+    }
     public IntakeState istate;
+    public GateState gstate;
     public int kState = -1;
     public Timer kickerTimer, kTimer, mTimer;
     private DcMotorEx intake;
     private Servo kicker;
     private Servo gate;
     private boolean kBoolean = false;
-    public static double kick = 0;
-    public static double set = 0.3;
+    public static double kick = 0.45;
+    public static double set = 0;
     public static double open = 0.7;
     public static double close = 0.9;
+    public static double kickWaitTime = 0.4;
     public static double intakeWaitTime = 0.1;
-    public static double setWaitTime = 0.4;
+    public static double setWaitTime = 1.3;
 
     public IntakeSubsystem(HardwareMap hardwareMap) {
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         kicker = hardwareMap.get(Servo.class, "kicker");
         gate = hardwareMap.get(Servo.class, "gate");
-
-        intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         kickerTimer = new Timer();
         kTimer = new Timer();
@@ -62,6 +66,16 @@ public class IntakeSubsystem {
         }
     }
 
+    public void gateState() {
+        if(gstate == GateState.OPEN) {
+            gate.setPosition(open);
+            gstate = GateState.OPEN;
+        } else if(gstate == GateState.CLOSE) {
+            gate.setPosition(close);
+            gstate = GateState.CLOSE;
+        }
+    }
+
     public void switchIntake() {
         if(istate == IntakeState.INTAKE) {
             stop();
@@ -75,8 +89,24 @@ public class IntakeSubsystem {
         }
     }
 
+    public void switchGate() {
+        if(gstate == GateState.OPEN) {
+            close();
+            gstate = GateState.CLOSE;
+        } else if(gstate == GateState.CLOSE) {
+            open();
+            gstate = GateState.OPEN;
+        } else {
+            open();
+            gstate = GateState.OPEN;
+        }
+    }
+
     public void setIntakeState(IntakeState state) {
         istate = state;
+    }
+    public void setGateState(GateState state) {
+        gstate = state;
     }
 
     public void intake() {
@@ -93,7 +123,7 @@ public class IntakeSubsystem {
 
     public void kickSequence() {
 
-        if ((kTimer.getElapsedTimeSeconds() > 1.5) && kState == -1) {
+        if ((kTimer.getElapsedTimeSeconds() > 1) && kState == -1) {
             kickerSeriesStart();
         }
     }
@@ -110,23 +140,37 @@ public class IntakeSubsystem {
     public void kickSeries() {
         switch (kState) {
             case 0:
-                stop();
-                setKickState(1);
+                open();
+                intake();
+                if (kTimer.getElapsedTimeSeconds() > 0.05) {
+                    setKickState(1);
+                }
                 break;
             case 1:
-                if (kTimer.getElapsedTimeSeconds() > 0) {
+                if (kTimer.getElapsedTimeSeconds() > kickWaitTime) {
                     kick();
                     setKickState(2);
                 }
                 break;
             case 2:
+                if(kTimer.getElapsedTimeSeconds() < 0.4) {
+                    kick();
+                }
+                if((kTimer.getElapsedTimeSeconds() > 0.4) && (kTimer.getElapsedTimeSeconds() < 1)) {
+                    set();
+                }
+                if((kTimer.getElapsedTimeSeconds() > 1) && (kTimer.getElapsedTimeSeconds() < setWaitTime)) {
+                    kick();
+                }
                 if (kTimer.getElapsedTimeSeconds() > setWaitTime) {
                     set();
                     setKickState(3);
                 }
                 break;
             case 3:
+                set();
                 if (kTimer.getElapsedTimeSeconds() > intakeWaitTime) {
+                    close();
                     intake();
                     setKickState(-1);
                 }
@@ -147,14 +191,15 @@ public class IntakeSubsystem {
 
     public void update() {
         intakeState();
+        gateState();
         kickSeries();
     }
 
     public void open() {
-        gate.setPosition(open);
+        setGateState(GateState.OPEN);
     }
 
     public void close() {
-        gate.setPosition(close);
+        setGateState(GateState.CLOSE);
     }
 }

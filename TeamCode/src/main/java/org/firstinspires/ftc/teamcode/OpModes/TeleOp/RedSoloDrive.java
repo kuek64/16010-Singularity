@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.OpModes.TeleOp;
 
-import static org.firstinspires.ftc.teamcode.OpModes.Auto.RedTwelveArtifact.autoEndPose;
+import static org.firstinspires.ftc.teamcode.OpModes.Auto.RedFifteenArtifact.autoEndPose;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
@@ -23,7 +23,7 @@ public class RedSoloDrive extends OpMode {
     public IntakeSubsystem intake;
 
     public static Follower follower;
-    public static Pose resetPose = new Pose(8,7,Math.toRadians(90));
+    public static Pose resetPose = new Pose(72,72,Math.toRadians(90));
     private PathChain pathChain;
 
     public void init() {
@@ -49,17 +49,9 @@ public class RedSoloDrive extends OpMode {
         follower.update();
         shooter.update();
         intake.update();
-        shooter.alignTurret(follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), false, telemetry);
+        shooter.alignTurret(follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), true, telemetry, follower.getVelocity().getMagnitude(), follower.getVelocity().getTheta());
 
         follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
-
-        if(gamepad2.rightBumperWasPressed()) {
-            shooter.driftAdjustPlus();
-        }
-
-        if(gamepad2.leftBumperWasPressed()) {
-            shooter.driftAdjustSubtract();
-        }
 
         if(gamepad1.xWasPressed()) {
             intake.switchIntake();
@@ -69,16 +61,8 @@ public class RedSoloDrive extends OpMode {
             intake.reverse();
         }
 
-        if(gamepad1.b) {
-            intake.kick();
-        } else {
-            intake.set();
-        }
-
         if(gamepad1.a) {
-            if(shooter.getVelError() < 10) {
-                intake.kickSequence();
-            }
+            intake.kickSequence();
         }
 
         if(gamepad1.right_stick_button) {

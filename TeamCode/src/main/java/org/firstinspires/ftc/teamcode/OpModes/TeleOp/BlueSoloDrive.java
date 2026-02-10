@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.OpModes.TeleOp;
 
-import static org.firstinspires.ftc.teamcode.OpModes.Auto.BlueTwelveArtifact.autoEndPose;
+import static org.firstinspires.ftc.teamcode.OpModes.Auto.BlueFifteenArtifact.autoEndPose;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
@@ -22,7 +22,7 @@ public class BlueSoloDrive extends OpMode {
     public ShooterSubsystem shooter;
     public IntakeSubsystem intake;
     public static Follower follower;
-    public static Pose resetPose = new Pose(136,7,Math.toRadians(90));
+    public static Pose resetPose = new Pose(72,72,Math.toRadians(90));
     private PathChain pathChain;
 
     public void init() {
@@ -48,18 +48,16 @@ public class BlueSoloDrive extends OpMode {
         follower.update();
         shooter.update();
         intake.update();
-        shooter.alignTurret(follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), true, telemetry);
+        shooter.alignTurret(follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), true, telemetry, follower.getVelocity().getMagnitude(), follower.getVelocity().getTheta());
 
         follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
 
-        if(gamepad1.bWasPressed()) {
-            intake.reverse();
+        if(gamepad1.aWasPressed()) {
+            intake.kickSequence();
         }
 
-        if(gamepad1.a) {
-            if(shooter.getVelError() < 10) {
-                intake.kickSequence();
-            }
+        if(gamepad1.xWasPressed()) {
+            intake.switchIntake();
         }
 
         if(gamepad1.right_stick_button) {
@@ -73,6 +71,8 @@ public class BlueSoloDrive extends OpMode {
         telemetry.addData("Flywheel Position: ", shooter.getVel());
         telemetry.addData("Turret Position: ", shooter.getPos());
         telemetry.addData("Turret Angle: ", shooter.getTurretAngle());
+        telemetry.addData("Velocity:", follower.getVelocity().getMagnitude());
+        telemetry.addData("Angular Velocity: ", follower.getVelocity().getTheta());
         telemetry.update();
     }
 

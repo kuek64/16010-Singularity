@@ -36,24 +36,12 @@ public class FlywheelTune extends OpMode {
             gamepad1.rumble(100);
         }
 
-        if(gamepad1.a) {
-            intake.intake();
-        } else {
-            intake.stop();
+        if(gamepad1.aWasPressed()) {
+            intake.kickSequence();
         }
 
-        if(gamepad1.b) {
-            intake.kick();
-        } else {
-            intake.set();
-        }
-
-        if(gamepad1.x) {
-            intake.open();
-        }
-
-        if(gamepad1.y) {
-            intake.close();
+        if(gamepad1.xWasPressed()) {
+            intake.switchIntake();
         }
 
         shooter.setFlywheelVelocity(vel);

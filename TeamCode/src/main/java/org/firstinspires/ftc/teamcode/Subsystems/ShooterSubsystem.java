@@ -24,34 +24,40 @@ import java.util.List;
 public class ShooterSubsystem {
     public static double turretOffsetY = 0;
     public static double turretOffsetX  = -4.5;
-    public static double fIntercept = 800;
-    public static double blueGoalX = 4;
+    public static double blueGoalX = 10;
     public static double blueGoalY = 144;
-    public static double redGoalX  = 140;
-    public static double redGoalY  = 144;
+    public static double redGoalX  = 144;
+    public static double redGoalY  = 136;
     private DcMotorEx flywheel1 = null;
     private DcMotorEx flywheel2 = null;
     private DcMotorEx turret = null;
     private RGBLight light = null;
-    public static double tSlope = 5.563;
-    public static double fSlope = 4.35;
+    public static double tSlope = -5.563;
     public static int pos = 0;
     public static int vel = 0;
-    public static double p = 200;
+    public static double p = 300;
     public static double i = 0;
     public static double d = 0;
     public static double f = 14.5;
-    public static double tp = -0.00175;
+    public static double tp = 0.005;
     public static double ti = 0;
     public static double td = 0.00001;
     public static double tf = 0;
     public static int tOffset = 0;
+    public static double EFFICIENCY = 1.4125;
+    public static double goalHeight = 39;
     public static PIDController tpidfController;
     public static PIDController fpidfController;
     public static int turretPos;
     public static double pidf;
     public static double fpid;
     public static double turretAngle;
+    public static double EFFICIENCY_SLOPE = 0.01;    // per meter
+    public static double MIN_EFFICIENCY = 1;
+    public static double DISTANCE_RPM_GAIN = 150;  // RPM per meter
+    public static double timeInAirB = 0.6;
+    public static double timeInAirM = 0.0012;
+
 
     public ShooterSubsystem(HardwareMap hardwareMap) {
         turret = hardwareMap.get(DcMotorEx.class, "turret");
@@ -86,59 +92,100 @@ public class ShooterSubsystem {
         turretPos = turret.getCurrentPosition();
     }
 
-    public void driftAdjustPlus() {
-        tOffset += 25;
+    public static int calculateRPM(double xInches, double yInches, double goalHeightInches, double shooterHeightInches) {
+        // ---- Unit conversion ----
+        double x = xInches * 0.0254;
+        double y = yInches * 0.0254;
+        double deltaZ = (goalHeightInches - shooterHeightInches) * 0.0254;
+
+        // ---- Horizontal distance ----
+        double d = Math.sqrt(x * x + y * y);
+
+        // ---- Safety check ----
+        if (d <= deltaZ) {
+            return 0;
+        }
+
+        // ---- Projectile velocity (45° hood) ----
+        double velocity = Math.sqrt((9.81 * d * d) / (d - deltaZ));
+
+        // ---- Velocity -> RPM (96mm wheel, 6mm compression => 0.042m radius) ----
+        double rpm = (60.0 / (2.0 * Math.PI)) * (velocity / 0.042);
+
+        // ---- Distance-dependent efficiency ----
+        double efficiency = EFFICIENCY - (EFFICIENCY_SLOPE * d);
+        efficiency = Math.max(MIN_EFFICIENCY, efficiency);
+
+        rpm /= efficiency;
+
+        // ---- Long-range compensation ----
+        rpm += DISTANCE_RPM_GAIN * d;
+
+        return (int) rpm;
     }
 
-    public void driftAdjustSubtract() {
-        tOffset -= 25;
-    }
+    public void alignTurret(double x, double y, double heading, boolean blue, Telemetry telemetry, double magVel, double thetaVel) {
+        final double GOAL_HEIGHT = 44;
+        final double ROBOT_HEIGHT = 16;
+        final int TURRET_MIN = -650;
+        final int TURRET_MAX = 1250;
 
-    public void alignTurret(double x, double y, double heading, boolean blue, Telemetry telemetry) {
-            double headingDeg = Math.toDegrees(heading);
+        double headingDeg = Math.toDegrees(heading);
 
-            double cos = Math.cos(heading);
-            double sin = Math.sin(heading);
+        double cos = Math.cos(heading);
+        double sin = Math.sin(heading);
 
-            double rotX = turretOffsetX * cos - turretOffsetY * sin;
-            double rotY = turretOffsetX * sin + turretOffsetY * cos;
+        double rotX = turretOffsetX * cos - turretOffsetY * sin;
+        double rotY = turretOffsetX * sin + turretOffsetY * cos;
 
-            x += rotX;
-            y += rotY;
+        x += rotX;
+        y += rotY;
 
-            double goalX = blue ? blueGoalX : redGoalX;
-            double goalY = blue ? blueGoalY : redGoalY;
+        double goalX = blue ? blueGoalX : redGoalX;
+        double goalY = blue ? blueGoalY : redGoalY;
 
-            double angleToGoal = Math.toDegrees(Math.atan2((goalX - x), (goalY - y)));
+        /* -------- INITIAL RPM ESTIMATE (for time in air) -------- */
+        double dx = goalX - x;
+        double dy = goalY - y;
 
-            turretAngle = angleToGoal + headingDeg - 90;
+        double rpmEstimate = calculateRPM(dx, dy, GOAL_HEIGHT, ROBOT_HEIGHT);
 
-            double currentAngleDeg = turret.getCurrentPosition() / tSlope;
+        /* ---------------- TIME IN AIR ---------------- */
+        double timeInAir = timeInAirM * rpmEstimate - timeInAirB;
 
-            double error = turretAngle - currentAngleDeg;
+        /* ---------------- VELOCITY LEAD ---------------- */
+        double vx = magVel * Math.cos(thetaVel);
+        double vy = magVel * Math.sin(thetaVel);
 
-            while (error > 180) {error -= 360;}
+        x += vx * timeInAir;
+        y += vy * timeInAir;
 
-            while (error < -180){error += 360;}
+        /* ---------------- TURRET ANGLE ---------------- */
+        double angleToGoal = Math.toDegrees(Math.atan2(goalX - x, goalY - y));
+        turretAngle = angleToGoal + headingDeg - 90;
 
-            turretAngle = turretAngle % 360;
+        double currentAngleDeg = turret.getCurrentPosition() / tSlope;
+        double error = turretAngle - currentAngleDeg;
 
-            int targetTicks = turret.getCurrentPosition() + (int)(error * tSlope);
+        while (error > 180) error -= 360;
+        while (error < -180) error += 360;
 
-            final int TURRET_MIN = -1347;
-            final int TURRET_MAX = 1347;
+        int targetTicks = turret.getCurrentPosition() + (int) (error * tSlope);
 
-            if (targetTicks >= TURRET_MAX || targetTicks <= TURRET_MIN) {
-                pos = 0;
-            } else {
-                pos = targetTicks;
-            }
+        if (targetTicks >= TURRET_MAX || targetTicks <= TURRET_MIN) {
+            pos = 0;
+        } else {
+            pos = targetTicks;
+        }
 
-            double distance = Math.hypot(goalX - x, goalY - y);
-            vel = (int) (distance * fSlope + fIntercept);
+        /* -------- FINAL RPM (MATCHES LED POSITION) -------- */
+        double finalDx = goalX - x;
+        double finalDy = goalY - y;
 
-            setFlywheelVelocity(vel);
-            setTurretPosition(pos + tOffset);
+        double finalRPM = calculateRPM(finalDx, finalDy, GOAL_HEIGHT, ROBOT_HEIGHT);
+
+        setFlywheelVelocity((int)(finalRPM));
+        setTurretPosition(pos + tOffset);
     }
 
     public int getPos() {

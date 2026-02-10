@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.OpModes.Auto;
 
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.pedropathing.geometry.BezierLine;
@@ -13,8 +14,8 @@ import org.firstinspires.ftc.teamcode.Subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.Subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous (name = "Red Close", group = "Autonomous")
-public class RedTwelveArtifact extends OpMode {
+@Autonomous (name = "Blue Close", group = "Autonomous")
+public class BlueFifteenArtifact extends OpMode {
     public static Follower follower;
     public static Pose autoEndPose;
 
@@ -27,46 +28,29 @@ public class RedTwelveArtifact extends OpMode {
     public int pos;
     public int vel;
 
-    private final Pose bluestartPose = new Pose(29.5, 127, Math.toRadians(180));
-    private final Pose bluescorePose = new Pose(60, 83.5, Math.toRadians(180));
-    private final Pose bluepickup1Pose = new Pose(27, 83.5, Math.toRadians(180));
-    private final Pose blueintake1Pose = new Pose(52, 83.5, Math.toRadians(180));
-    private final Pose bluepickup2Pose = new Pose(8, 59.5, Math.toRadians(180));
-    private final Pose bluesetUpPose = new Pose(30, 77.5, Math.toRadians(90));
-    private final Pose blueemptyPose = new Pose(16, 76, Math.toRadians(90));
-    private final Pose blueintake2Pose = new Pose(60, 59.5, Math.toRadians(180));
-    private final Pose bluepickup3Pose = new Pose(10, 34.5, Math.toRadians(180));
-    private final Pose blueintake3Pose = new Pose(60, 34.5, Math.toRadians(180));
-    private final Pose blueleavePose = new Pose(50, 73.5, Math.toRadians(135));
-
-    private final Pose startPose = bluestartPose.mirror();
-    private final Pose scorePose = bluescorePose.mirror();
-    private final Pose pickup1Pose = bluepickup1Pose.mirror();
-    private final Pose intake1Pose = blueintake1Pose.mirror();
-    private final Pose pickup2Pose = bluepickup2Pose.mirror();
-    private final Pose setUpPose = bluesetUpPose.mirror();
-    private final Pose emptyPose = blueemptyPose.mirror();
-    private final Pose intake2Pose = blueintake2Pose.mirror();
-    private final Pose pickup3Pose = bluepickup3Pose.mirror();
-    private final Pose intake3Pose = blueintake3Pose.mirror();
-    private final Pose leavePose = blueleavePose.mirror();
+    private final Pose startPose = new Pose(29.5, 127, Math.toRadians(180));
+    private final Pose scorePose = new Pose(60, 83.5, Math.toRadians(180));
+    private final Pose pickup1Pose = new Pose(12, 83.5, Math.toRadians(180));
+    private final Pose pickup2Pose = new Pose(11, 60, Math.toRadians(180));
+    private final Pose setUpPose = new Pose(42, 60, Math.toRadians(180));
+    private final Pose emptyPose = new Pose(15, 72, Math.toRadians(180));
+    private final Pose intake2Pose = new Pose(72, 60, Math.toRadians(180));
+    private final Pose pickup3Pose = new Pose(6, 36, Math.toRadians(180));
+    private final Pose intake3Pose = new Pose(72, 30, Math.toRadians(180));
+    private final Pose intake4Pose = new Pose(6, 60, Math.toRadians(270));
+    private final Pose pickup4Pose = new Pose(4, -12, Math.toRadians(270));
+    private final Pose leavePose = new Pose(50, 73.5, Math.toRadians(135));
 
     private Path scorePreload;
-    private PathChain scorePickup1, scorePickup2, scorePickup3, grabPickup1, grabPickup2, grabPickup3, leave;
+    private PathChain scorePickup1, scorePickup2, scorePickup3, grabPickup1, grabPickup2, grabPickup3, grabPickup4, scorePickup4, leave;
 
     public void buildPaths() {
         scorePreload = new Path(new BezierLine(startPose, scorePose));
         scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
 
         grabPickup1 = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, intake1Pose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), intake1Pose.getHeading())
-                .addPath(new BezierLine(intake1Pose, pickup1Pose))
-                .setLinearHeadingInterpolation(intake1Pose.getHeading(), pickup1Pose.getHeading())
-                .addPath(new BezierLine(pickup1Pose, setUpPose))
-                .setLinearHeadingInterpolation(pickup2Pose.getHeading(), setUpPose.getHeading())
-                .addPath(new BezierLine(setUpPose, emptyPose))
-                .setLinearHeadingInterpolation(setUpPose.getHeading(), emptyPose.getHeading())
+                .addPath(new BezierLine(scorePose, pickup1Pose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup1Pose.getHeading())
                 .build();
 
         scorePickup1 = follower.pathBuilder()
@@ -75,27 +59,35 @@ public class RedTwelveArtifact extends OpMode {
                 .build();
 
         grabPickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, intake2Pose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), intake2Pose.getHeading())
-                .addPath(new BezierLine(intake2Pose, pickup2Pose))
-                .setLinearHeadingInterpolation(intake2Pose.getHeading(), pickup2Pose.getHeading())
+                .addPath( new BezierCurve(scorePose, intake2Pose, pickup2Pose))
+                .setConstantHeadingInterpolation(pickup2Pose.getHeading())
+                .addPath(new BezierCurve(pickup2Pose, setUpPose, emptyPose))
+                .setConstantHeadingInterpolation(emptyPose.getHeading())
                 .build();
 
         scorePickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup2Pose, scorePose))
-                .setLinearHeadingInterpolation(pickup2Pose.getHeading(), scorePose.getHeading())
+                .addPath(new BezierLine(emptyPose, scorePose))
+                .setLinearHeadingInterpolation(emptyPose.getHeading(), scorePose.getHeading())
                 .build();
 
         grabPickup3 = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, intake3Pose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), intake3Pose.getHeading())
-                .addPath(new BezierLine(intake3Pose, pickup3Pose))
-                .setLinearHeadingInterpolation(intake3Pose.getHeading(), pickup3Pose.getHeading())
+                .addPath(new BezierCurve(scorePose, intake3Pose, pickup3Pose))
+                .setConstantHeadingInterpolation(pickup2Pose.getHeading())
                 .build();
 
         scorePickup3 = follower.pathBuilder()
                 .addPath(new BezierLine(pickup3Pose, scorePose))
                 .setLinearHeadingInterpolation(pickup3Pose.getHeading(), scorePose.getHeading())
+                .build();
+
+        grabPickup4 = follower.pathBuilder()
+                .addPath(new BezierCurve(scorePose, intake4Pose, pickup4Pose))
+                .setConstantHeadingInterpolation(pickup4Pose.getHeading())
+                .build();
+
+        scorePickup4 = follower.pathBuilder()
+                .addPath(new BezierLine(pickup4Pose, scorePose))
+                .setLinearHeadingInterpolation(pickup4Pose.getHeading(), scorePose.getHeading())
                 .build();
 
         leave = follower.pathBuilder()
@@ -107,33 +99,37 @@ public class RedTwelveArtifact extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                vel = 1040;
-                pos = -650;
+                vel = 1240;
+                pos = -250;
                 follower.setMaxPower(1);
                 follower.followPath(scorePreload);
+                intake.stop();
+                intake.open();
                 setPathState(1);
                 break;
             case 1:
-                if(pathTimer.getElapsedTimeSeconds() > 1.9) {
+                if(pathTimer.getElapsedTimeSeconds() > 1.75) {
                     intake.kickSequence();
                 }
-                if(pathTimer.getElapsedTimeSeconds() > 4.55) {
+                if(pathTimer.getElapsedTimeSeconds() > 3.5) {
                     intake.intake();
                     follower.followPath(grabPickup1,true);
                     setPathState(2);
                 }
                 break;
             case 2:
-                if(pathTimer.getElapsedTimeSeconds() > 3.3) {
+                if(pathTimer.getElapsedTimeSeconds() > 1.4) {
                     follower.followPath(scorePickup1,true);
+                    intake.stop();
+                    intake.open();
                     setPathState(3);
                 }
                 break;
             case 3:
-                if(pathTimer.getElapsedTimeSeconds() > 2.1) {
+                if(pathTimer.getElapsedTimeSeconds() > 1) {
                     intake.kickSequence();
                 }
-                if(pathTimer.getElapsedTimeSeconds() > 4.15) {
+                if(pathTimer.getElapsedTimeSeconds() > 3.4) {
                     intake.intake();
                     follower.setMaxPower(1);
                     follower.followPath(grabPickup2,true);
@@ -141,16 +137,18 @@ public class RedTwelveArtifact extends OpMode {
                 }
                 break;
             case 4:
-                if(pathTimer.getElapsedTimeSeconds() > 3.15) {
+                if(pathTimer.getElapsedTimeSeconds() > 3.35) {
                     follower.followPath(scorePickup2, true);
+                    intake.stop();
+                    intake.open();
                     setPathState(5);
                 }
                 break;
             case 5:
-                if(pathTimer.getElapsedTimeSeconds() > 2.85) {
+                if(pathTimer.getElapsedTimeSeconds() > 1.65) {
                     intake.kickSequence();
                 }
-                if(pathTimer.getElapsedTimeSeconds() > 4.95) {
+                if(pathTimer.getElapsedTimeSeconds() > 3.35) {
                     intake.intake();
                     follower.setMaxPower(1);
                     follower.followPath(grabPickup3,true);
@@ -158,20 +156,39 @@ public class RedTwelveArtifact extends OpMode {
                 }
                 break;
             case 6:
-                if(pathTimer.getElapsedTimeSeconds() > 3.6) {
+                if(pathTimer.getElapsedTimeSeconds() > 2.25) {
                     follower.followPath(scorePickup3, true);
                     setPathState(7);
                 }
                 break;
             case 7:
-                if(pathTimer.getElapsedTimeSeconds() > 3.05) {
+                if(pathTimer.getElapsedTimeSeconds() > 1.75) {
                     intake.kickSequence();
                 }
-                if(pathTimer.getElapsedTimeSeconds() > 5.4) {
+                if(pathTimer.getElapsedTimeSeconds() > 4.3) {
+                    intake.intake();
+                    follower.setMaxPower(0.85);
+                    follower.followPath(grabPickup4,true);
                     setPathState(8);
                 }
                 break;
             case 8:
+                if(pathTimer.getElapsedTimeSeconds() > 3.05) {
+                    follower.followPath(scorePickup4, true);
+                    intake.stop();
+                    intake.open();
+                    setPathState(9);
+                }
+                break;
+            case 9:
+                if(pathTimer.getElapsedTimeSeconds() > 2.65) {
+                    intake.kickSequence();
+                }
+                if(pathTimer.getElapsedTimeSeconds() > 4.15) {
+                    setPathState(10);
+                }
+                break;
+            case 10:
                 pos = 0;
                 follower.followPath(leave);
                 setPathState(-1);
@@ -187,17 +204,16 @@ public class RedTwelveArtifact extends OpMode {
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
-
         shooter = new ShooterSubsystem(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap);
         follower = Constants.createFollower(hardwareMap);
-
         buildPaths();
         follower.setStartingPose(startPose);
     }
 
     @Override
     public void start() {
+        pathTimer.resetTimer();
         opmodeTimer.resetTimer();
         setPathState(0);
     }
@@ -208,9 +224,7 @@ public class RedTwelveArtifact extends OpMode {
         shooter.setTurretPosition(pos);
         shooter.setFlywheelVelocity(vel);
         intake.update();
-
         autonomousPathUpdate();
-
         telemetry.addData("Path State: ", pathState);
         telemetry.addData("X: ", follower.getPose().getX());
         telemetry.addData("Y: ", follower.getPose().getY());
