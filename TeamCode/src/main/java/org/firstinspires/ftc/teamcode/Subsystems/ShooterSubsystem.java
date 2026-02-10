@@ -24,7 +24,7 @@ import java.util.List;
 public class ShooterSubsystem {
     public static double turretOffsetY = 0;
     public static double turretOffsetX  = -4.5;
-    public static double blueGoalX = 10;
+    public static double blueGoalX = 2.5;
     public static double blueGoalY = 144;
     public static double redGoalX  = 144;
     public static double redGoalY  = 136;
@@ -35,7 +35,7 @@ public class ShooterSubsystem {
     public static double tSlope = -5.563;
     public static int pos = 0;
     public static int vel = 0;
-    public static double p = 300;
+    public static double p = 400;
     public static double i = 0;
     public static double d = 0;
     public static double f = 14.5;
@@ -44,7 +44,7 @@ public class ShooterSubsystem {
     public static double td = 0.00001;
     public static double tf = 0;
     public static int tOffset = 0;
-    public static double EFFICIENCY = 1.4125;
+    public static double EFFICIENCY = 1.425;
     public static double goalHeight = 39;
     public static PIDController tpidfController;
     public static PIDController fpidfController;
@@ -54,7 +54,7 @@ public class ShooterSubsystem {
     public static double turretAngle;
     public static double EFFICIENCY_SLOPE = 0.01;    // per meter
     public static double MIN_EFFICIENCY = 1;
-    public static double DISTANCE_RPM_GAIN = 150;  // RPM per meter
+    public static double DISTANCE_RPM_GAIN = 140;  // RPM per meter
     public static double timeInAirB = 0.6;
     public static double timeInAirM = 0.0012;
 
