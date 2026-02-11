@@ -56,8 +56,8 @@ public class BlueFarSide extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                vel = 1290;
-                pos = -300;
+                vel = 1620;
+                pos = -105;
                 setPathState(1);
                 break;
             case 1:

@@ -24,7 +24,7 @@ import java.util.List;
 public class ShooterSubsystem {
     public static double turretOffsetY = 0;
     public static double turretOffsetX  = -4.5;
-    public static double blueGoalX = 2.5;
+    public static double blueGoalX = 5;
     public static double blueGoalY = 144;
     public static double redGoalX  = 144;
     public static double redGoalY  = 136;
@@ -38,25 +38,20 @@ public class ShooterSubsystem {
     public static double p = 400;
     public static double i = 0;
     public static double d = 0;
-    public static double f = 14.5;
+    public static double f = 16.5;
     public static double tp = 0.005;
     public static double ti = 0;
     public static double td = 0.00001;
     public static double tf = 0;
     public static int tOffset = 0;
-    public static double EFFICIENCY = 1.425;
-    public static double goalHeight = 39;
     public static PIDController tpidfController;
-    public static PIDController fpidfController;
     public static int turretPos;
     public static double pidf;
-    public static double fpid;
     public static double turretAngle;
-    public static double EFFICIENCY_SLOPE = 0.01;    // per meter
-    public static double MIN_EFFICIENCY = 1;
-    public static double DISTANCE_RPM_GAIN = 140;  // RPM per meter
     public static double timeInAirB = 0.6;
     public static double timeInAirM = 0.0012;
+    public static double fIntercept = 300;
+    public static double fSlope = 11.5;
 
 
     public ShooterSubsystem(HardwareMap hardwareMap) {
@@ -93,33 +88,9 @@ public class ShooterSubsystem {
     }
 
     public static int calculateRPM(double xInches, double yInches, double goalHeightInches, double shooterHeightInches) {
-        // ---- Unit conversion ----
-        double x = xInches * 0.0254;
-        double y = yInches * 0.0254;
-        double deltaZ = (goalHeightInches - shooterHeightInches) * 0.0254;
+        double distance = Math.hypot(xInches, yInches);
 
-        // ---- Horizontal distance ----
-        double d = Math.sqrt(x * x + y * y);
-
-        // ---- Safety check ----
-        if (d <= deltaZ) {
-            return 0;
-        }
-
-        // ---- Projectile velocity (45° hood) ----
-        double velocity = Math.sqrt((9.81 * d * d) / (d - deltaZ));
-
-        // ---- Velocity -> RPM (96mm wheel, 6mm compression => 0.042m radius) ----
-        double rpm = (60.0 / (2.0 * Math.PI)) * (velocity / 0.042);
-
-        // ---- Distance-dependent efficiency ----
-        double efficiency = EFFICIENCY - (EFFICIENCY_SLOPE * d);
-        efficiency = Math.max(MIN_EFFICIENCY, efficiency);
-
-        rpm /= efficiency;
-
-        // ---- Long-range compensation ----
-        rpm += DISTANCE_RPM_GAIN * d;
+        double rpm = fIntercept + distance*fSlope;
 
         return (int) rpm;
     }
