@@ -30,7 +30,7 @@ public class BlueFifteenArtifact extends OpMode {
 
     private final Pose startPose = new Pose(27.5, 126.5, Math.toRadians(180));
     private final Pose scorePose = new Pose(60, 83.5, Math.toRadians(180));
-    private final Pose pickup1Pose = new Pose(12, 83.5, Math.toRadians(180));
+    private final Pose pickup1Pose = new Pose(16, 83.5, Math.toRadians(180));
     private final Pose pickup2Pose = new Pose(11, 60, Math.toRadians(180));
     private final Pose setUpPose = new Pose(42, 58, Math.toRadians(180));
     private final Pose emptyPose = new Pose(15, 72, Math.toRadians(180));
@@ -39,7 +39,7 @@ public class BlueFifteenArtifact extends OpMode {
     private final Pose intake3Pose = new Pose(72, 30, Math.toRadians(180));
     private final Pose intake4Pose = new Pose(6, 60, Math.toRadians(270));
     private final Pose pickup4Pose = new Pose(4, -12, Math.toRadians(270));
-    private final Pose leavePose = new Pose(50, 73.5, Math.toRadians(135));
+    private final Pose finalScorePose = new Pose(60, 83.5, Math.toRadians(135));
 
     private Path scorePreload;
     private PathChain scorePickup1, scorePickup2, scorePickup3, grabPickup1, grabPickup2, grabPickup3, grabPickup4, scorePickup4, leave;
@@ -86,21 +86,16 @@ public class BlueFifteenArtifact extends OpMode {
                 .build();
 
         scorePickup4 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup4Pose, scorePose))
-                .setLinearHeadingInterpolation(pickup4Pose.getHeading(), scorePose.getHeading())
-                .build();
-
-        leave = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, leavePose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), leavePose.getHeading())
+                .addPath(new BezierLine(pickup4Pose, finalScorePose))
+                .setLinearHeadingInterpolation(pickup4Pose.getHeading(), finalScorePose.getHeading())
                 .build();
     }
 
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                vel = 1235;
-                pos = -238;
+                vel = 1250;
+                pos = -235;
                 follower.setMaxPower(1);
                 follower.followPath(scorePreload);
                 intake.stop();
@@ -118,7 +113,7 @@ public class BlueFifteenArtifact extends OpMode {
                 }
                 break;
             case 2:
-                if(pathTimer.getElapsedTimeSeconds() > 1.4) {
+                if(pathTimer.getElapsedTimeSeconds() > 1.6) {
                     follower.followPath(scorePickup1,true);
                     intake.stop();
                     intake.open();
@@ -148,7 +143,7 @@ public class BlueFifteenArtifact extends OpMode {
                 if(pathTimer.getElapsedTimeSeconds() > 1.65) {
                     intake.kickSequence();
                 }
-                if(pathTimer.getElapsedTimeSeconds() > 2.95) {
+                if(pathTimer.getElapsedTimeSeconds() > 3.35) {
                     intake.intake();
                     follower.setMaxPower(1);
                     follower.followPath(grabPickup3,true);
@@ -165,7 +160,7 @@ public class BlueFifteenArtifact extends OpMode {
                 if(pathTimer.getElapsedTimeSeconds() > 1.75) {
                     intake.kickSequence();
                 }
-                if(pathTimer.getElapsedTimeSeconds() > 3.95) {
+                if(pathTimer.getElapsedTimeSeconds() > 3.75) {
                     intake.intake();
                     follower.setMaxPower(0.85);
                     follower.followPath(grabPickup4,true);
@@ -173,8 +168,9 @@ public class BlueFifteenArtifact extends OpMode {
                 }
                 break;
             case 8:
-                if(pathTimer.getElapsedTimeSeconds() > 3.05) {
+                if(pathTimer.getElapsedTimeSeconds() > 3.35) {
                     follower.followPath(scorePickup4, true);
+                    pos = 0;
                     intake.stop();
                     intake.open();
                     setPathState(9);
@@ -184,13 +180,11 @@ public class BlueFifteenArtifact extends OpMode {
                 if(pathTimer.getElapsedTimeSeconds() > 2.85) {
                     intake.kickSequence();
                 }
-                if(pathTimer.getElapsedTimeSeconds() > 4.65) {
+                if(pathTimer.getElapsedTimeSeconds() > 9) {
                     setPathState(10);
                 }
                 break;
             case 10:
-                pos = 0;
-                follower.followPath(leave);
                 setPathState(-1);
         }
     }

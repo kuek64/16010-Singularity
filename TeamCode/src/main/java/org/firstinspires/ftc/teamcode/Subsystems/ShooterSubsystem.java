@@ -3,8 +3,9 @@ package org.firstinspires.ftc.teamcode.Subsystems;
 import static java.lang.Math.atan;
 
 import com.arcrobotics.ftclib.controller.PIDController;
-import com.arcrobotics.ftclib.controller.PIDFController;
 import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.control.PIDFCoefficients;
+import com.pedropathing.control.PIDFController;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -13,7 +14,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -23,11 +23,11 @@ import java.util.List;
 @Configurable
 public class ShooterSubsystem {
     public static double turretOffsetY = 0;
-    public static double turretOffsetX  = -4.5;
-    public static double blueGoalX = 5;
+    public static double turretOffsetX  = -4;
+    public static double blueGoalX = 6;
     public static double blueGoalY = 144;
-    public static double redGoalX  = 144;
-    public static double redGoalY  = 136;
+    public static double redGoalX  = 138;
+    public static double redGoalY  = 144;
     private DcMotorEx flywheel1 = null;
     private DcMotorEx flywheel2 = null;
     private DcMotorEx turret = null;
@@ -35,23 +35,26 @@ public class ShooterSubsystem {
     public static double tSlope = -5.563;
     public static int pos = 0;
     public static int vel = 0;
-    public static double p = 400;
+    public static double p = .002;
     public static double i = 0;
     public static double d = 0;
-    public static double f = 16.5;
+    public static double f = 0.000335;
+    public static double ff = 0.06;
     public static double tp = 0.005;
     public static double ti = 0;
     public static double td = 0.00001;
     public static double tf = 0;
     public static int tOffset = 0;
     public static PIDController tpidfController;
+    public static PIDController fpidfController;
     public static int turretPos;
     public static double pidf;
+    public static double fpidf;
     public static double turretAngle;
     public static double timeInAirB = 0.6;
     public static double timeInAirM = 0.0012;
-    public static double fIntercept = 300;
-    public static double fSlope = 11.5;
+    public static double fIntercept = 720;
+    public static double fSlope = 5.6;
 
 
     public ShooterSubsystem(HardwareMap hardwareMap) {
@@ -62,12 +65,13 @@ public class ShooterSubsystem {
         turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         turret.setDirection(DcMotor.Direction.FORWARD);
-        flywheel1.setDirection(DcMotor.Direction.FORWARD);
-        flywheel2.setDirection(DcMotorSimple.Direction.REVERSE);
+        flywheel1.setDirection(DcMotor.Direction.REVERSE);
+        flywheel2.setDirection(DcMotor.Direction.REVERSE);
 
         flywheel1.setVelocityPIDFCoefficients(p,i,d,f);
 
         tpidfController = new PIDController(tp,ti,td);
+        fpidfController = new PIDController(p,i,d);
     }
 
     public void setTurretPosition(int pos) {
@@ -78,16 +82,22 @@ public class ShooterSubsystem {
     }
 
     public void setFlywheelVelocity(int vel) {
-        flywheel1.setVelocityPIDFCoefficients(p, i, d, f);
-        flywheel1.setVelocity(vel);
-        flywheel2.setPower(flywheel1.getPower());
+        fpidfController.setPID(p,i,d);
+        fpidf = fpidfController.calculate(getVel(), vel);
+        flywheel1.setPower(fpidf + ff + (f*vel));
+        flywheel2.setPower(fpidf + ff + (f*vel));
+    }
+
+    private void setPower(double k) {
+        flywheel1.setPower(k);
+        flywheel2.setPower(k);
     }
 
     public void update() {
         turretPos = turret.getCurrentPosition();
     }
 
-    public static int calculateRPM(double xInches, double yInches, double goalHeightInches, double shooterHeightInches) {
+    public static int calculateRPM(double xInches, double yInches) {
         double distance = Math.hypot(xInches, yInches);
 
         double rpm = fIntercept + distance*fSlope;
@@ -96,10 +106,8 @@ public class ShooterSubsystem {
     }
 
     public void alignTurret(double x, double y, double heading, boolean blue, Telemetry telemetry, double magVel, double thetaVel) {
-        final double GOAL_HEIGHT = 44;
-        final double ROBOT_HEIGHT = 16;
         final int TURRET_MIN = -650;
-        final int TURRET_MAX = 1250;
+        final int TURRET_MAX = 1350;
 
         double headingDeg = Math.toDegrees(heading);
 
@@ -114,22 +122,6 @@ public class ShooterSubsystem {
 
         double goalX = blue ? blueGoalX : redGoalX;
         double goalY = blue ? blueGoalY : redGoalY;
-
-        /* -------- INITIAL RPM ESTIMATE (for time in air) -------- */
-        double dx = goalX - x;
-        double dy = goalY - y;
-
-        double rpmEstimate = calculateRPM(dx, dy, GOAL_HEIGHT, ROBOT_HEIGHT);
-
-        /* ---------------- TIME IN AIR ---------------- */
-        double timeInAir = timeInAirM * rpmEstimate - timeInAirB;
-
-        /* ---------------- VELOCITY LEAD ---------------- */
-        double vx = magVel * Math.cos(thetaVel);
-        double vy = magVel * Math.sin(thetaVel);
-
-        x += vx * timeInAir;
-        y += vy * timeInAir;
 
         /* ---------------- TURRET ANGLE ---------------- */
         double angleToGoal = Math.toDegrees(Math.atan2(goalX - x, goalY - y));
@@ -149,11 +141,9 @@ public class ShooterSubsystem {
             pos = targetTicks;
         }
 
-        /* -------- FINAL RPM (MATCHES LED POSITION) -------- */
-        double finalDx = goalX - x;
-        double finalDy = goalY - y;
+        double distance = Math.hypot(goalX-x, goalY-y);
 
-        double finalRPM = calculateRPM(finalDx, finalDy, GOAL_HEIGHT, ROBOT_HEIGHT);
+        double finalRPM = fIntercept + distance*fSlope;
 
         setFlywheelVelocity((int)(finalRPM));
         setTurretPosition(pos + tOffset);
@@ -171,7 +161,7 @@ public class ShooterSubsystem {
     }
 
     public double getVelError() {
-        return Math.abs(flywheel1.getVelocity() - vel);
+        return Math.abs(getVel() - vel);
     }
 
     public void telemetry() {

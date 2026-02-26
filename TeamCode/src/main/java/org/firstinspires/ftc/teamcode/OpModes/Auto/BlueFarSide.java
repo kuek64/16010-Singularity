@@ -29,9 +29,11 @@ public class BlueFarSide extends OpMode {
     private final Pose scorePose = new Pose(62, 10, Math.toRadians(90));
     private final Pose pickup1Pose = new Pose(10.75, 13, Math.toRadians(225));
     private final Pose intake1Pose = new Pose(10.75, 19, Math.toRadians(225));
-    private final Pose parkPose = new Pose(36, 14, Math.toRadians(90));
+    private final Pose pickup3Pose = new Pose(6, 36, Math.toRadians(180));
+    private final Pose intake3Pose = new Pose(36, 36, Math.toRadians(180));
+    private final Pose parkPose = new Pose(36, 20, Math.toRadians(90));
 
-    private PathChain scorePickup1, grabPickup1 , leave;
+    private PathChain scorePickup1, grabPickup1, scorePickup3, grabPickup3, leave;
 
     public void buildPaths() {
         grabPickup1 = follower.pathBuilder()
@@ -47,6 +49,23 @@ public class BlueFarSide extends OpMode {
                 .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePose.getHeading())
                 .build();
 
+        grabPickup3 = follower.pathBuilder()
+                .addPath(new BezierLine(startPose, intake3Pose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), intake3Pose.getHeading())
+                .addPath(new BezierLine(intake3Pose, pickup3Pose))
+                .setLinearHeadingInterpolation(intake3Pose.getHeading(), pickup3Pose.getHeading())
+                .build();
+
+        scorePickup1 = follower.pathBuilder()
+                .addPath(new BezierLine(pickup3Pose, scorePose))
+                .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePose.getHeading())
+                .build();
+
+        scorePickup1 = follower.pathBuilder()
+                .addPath(new BezierLine(pickup3Pose, scorePose))
+                .setLinearHeadingInterpolation(pickup3Pose.getHeading(), scorePose.getHeading())
+                .build();
+
         leave = follower.pathBuilder()
                 .addPath(new BezierLine(scorePose, parkPose))
                 .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePose.getHeading())
@@ -56,8 +75,8 @@ public class BlueFarSide extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                vel = 1620;
-                pos = -105;
+                vel = 1640;
+                pos = 105;
                 setPathState(1);
                 break;
             case 1:
@@ -84,13 +103,13 @@ public class BlueFarSide extends OpMode {
                 if (pathTimer.getElapsedTimeSeconds() > 4.5) {
                     intake.intake();
                     follower.setMaxPower(1);
-                    follower.followPath(grabPickup1, true);
+                    follower.followPath(grabPickup3, true);
                     setPathState(4);
                 }
                 break;
             case 4:
                 if (pathTimer.getElapsedTimeSeconds() > 2.5) {
-                    follower.followPath(scorePickup1, true);
+                    follower.followPath(scorePickup3, true);
                     setPathState(5);
                 }
                 break;

@@ -33,11 +33,11 @@ public class IntakeSubsystem {
     private boolean kBoolean = false;
     public static double kick = 0.45;
     public static double set = 0;
-    public static double open = 0.7;
-    public static double close = 0.9;
+    public static double open = 0.4;
+    public static double close = 0.6;
     public static double kickWaitTime = 0.4;
     public static double intakeWaitTime = 0.1;
-    public static double setWaitTime = 1.3;
+    public static double setWaitTime = 1.5;
 
     public IntakeSubsystem(HardwareMap hardwareMap) {
         intake = hardwareMap.get(DcMotorEx.class, "intake");

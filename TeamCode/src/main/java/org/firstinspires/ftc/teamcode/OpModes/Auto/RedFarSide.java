@@ -24,9 +24,8 @@ public class RedFarSide extends OpMode {
     public int pos;
     public int vel;
     private final Pose bluestartPose = new Pose(62, 10, Math.toRadians(90));
-    private final Pose bluescorePose = new Pose(62, 10, Math.toRadians(90));
-    private final Pose bluepickup1Pose = new Pose(12.75, 13, Math.toRadians(225));
-    private final Pose blueintake1Pose = new Pose(12.75, 19, Math.toRadians(225));
+    private final Pose bluescorePose = new Pose(60, 20, Math.toRadians(90));
+    private final Pose bluepickup1Pose = new Pose(10.75, 6.75, Math.toRadians(180));
     private final Pose bluepickup3Pose = new Pose(6, 36, Math.toRadians(180));
     private final Pose blueintake3Pose = new Pose(36, 36, Math.toRadians(180));
     private final Pose blueparkPose = new Pose(36, 20, Math.toRadians(90));
@@ -34,38 +33,35 @@ public class RedFarSide extends OpMode {
     private final Pose startPose = bluestartPose.mirror();
     private final Pose scorePose = bluescorePose.mirror();
     private final Pose pickup1Pose = bluepickup1Pose.mirror();
-    private final Pose intake1Pose = blueintake1Pose.mirror();
     private final Pose pickup3Pose = bluepickup3Pose.mirror();
     private final Pose intake3Pose = blueintake3Pose.mirror();
     private final Pose parkPose = blueparkPose.mirror();
 
-    private PathChain scorePickup1, grabPickup1, scorePickup3, grabPickup3, leave;
+    private PathChain score, scorePickup1, grabPickup1, scorePickup3, grabPickup3, leave;
 
     public void buildPaths() {
-        grabPickup1 = follower.pathBuilder()
-                .addPath(new BezierLine(startPose, intake1Pose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), intake1Pose.getHeading())
-                .addPath(new BezierLine(intake1Pose, pickup1Pose))
-                .setLinearHeadingInterpolation(intake1Pose.getHeading(), pickup1Pose.getHeading())
+        score = follower.pathBuilder()
+                .addPath(new BezierLine(startPose, scorePose))
+                .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
                 .build();
-
+        grabPickup1 = follower.pathBuilder()
+                .addPath(new BezierLine(scorePose, pickup1Pose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup1Pose.getHeading(), 0.2)
+                .build();
         grabPickup3 = follower.pathBuilder()
-                .addPath(new BezierLine(startPose, intake3Pose))
+                .addPath(new BezierLine(scorePose, intake3Pose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), intake3Pose.getHeading())
                 .addPath(new BezierLine(intake3Pose, pickup3Pose))
                 .setLinearHeadingInterpolation(intake3Pose.getHeading(), pickup3Pose.getHeading())
                 .build();
-
+        scorePickup3 = follower.pathBuilder()
+                .addPath(new BezierLine(pickup3Pose, scorePose))
+                .setLinearHeadingInterpolation(pickup3Pose.getHeading(), scorePose.getHeading())
+                .build();
         scorePickup1 = follower.pathBuilder()
                 .addPath(new BezierLine(pickup1Pose, scorePose))
                 .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePose.getHeading())
                 .build();
-
-        scorePickup1 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup3Pose, scorePose))
-                .setLinearHeadingInterpolation(pickup3Pose.getHeading(), scorePose.getHeading())
-                .build();
-
         leave = follower.pathBuilder()
                 .addPath(new BezierLine(scorePose, parkPose))
                 .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePose.getHeading())
@@ -75,17 +71,18 @@ public class RedFarSide extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                vel = 1620;
-                pos = 105;
+                vel = 1560;
+                pos = -135;
                 intake.open();
                 intake.stop();
+                follower.followPath(score);
                 setPathState(1);
                 break;
             case 1:
-                if (pathTimer.getElapsedTimeSeconds() > 2.5) {
+                if (pathTimer.getElapsedTimeSeconds() > 1.75) {
                     intake.kickSequence();
                 }
-                if (pathTimer.getElapsedTimeSeconds() > 4.55) {
+                if (pathTimer.getElapsedTimeSeconds() > 3.55) {
                     intake.intake();
                     follower.setMaxPower(1);
                     follower.followPath(grabPickup3, true);
@@ -93,16 +90,16 @@ public class RedFarSide extends OpMode {
                 }
                 break;
             case 2:
-                if (pathTimer.getElapsedTimeSeconds() > 3) {
+                if (pathTimer.getElapsedTimeSeconds() > 2.1) {
                     follower.followPath(scorePickup3, true);
                     setPathState(3);
                 }
                 break;
             case 3:
-                if (pathTimer.getElapsedTimeSeconds() > 2.4) {
+                if (pathTimer.getElapsedTimeSeconds() > 1.5) {
                     intake.kickSequence();
                 }
-                if (pathTimer.getElapsedTimeSeconds() > 4.5) {
+                if (pathTimer.getElapsedTimeSeconds() > 3.75) {
                     intake.intake();
                     follower.setMaxPower(1);
                     follower.followPath(grabPickup1, true);
@@ -116,10 +113,10 @@ public class RedFarSide extends OpMode {
                 }
                 break;
             case 5:
-                if (pathTimer.getElapsedTimeSeconds() > 2.4) {
+                if (pathTimer.getElapsedTimeSeconds() > 1.5) {
                     intake.kickSequence();
                 }
-                if (pathTimer.getElapsedTimeSeconds() > 4.5) {
+                if (pathTimer.getElapsedTimeSeconds() > 3.75) {
                     intake.intake();
                     follower.setMaxPower(1);
                     follower.followPath(grabPickup1, true);
@@ -127,16 +124,33 @@ public class RedFarSide extends OpMode {
                 }
                 break;
             case 6:
-                if (pathTimer.getElapsedTimeSeconds() > 2.5) {
+                if (pathTimer.getElapsedTimeSeconds() > 2) {
                     follower.followPath(scorePickup1, true);
                     setPathState(7);
                 }
                 break;
             case 7:
-                if (pathTimer.getElapsedTimeSeconds() > 2.4) {
+                if (pathTimer.getElapsedTimeSeconds() > 1.5) {
                     intake.kickSequence();
                 }
-                if(pathTimer.getElapsedTimeSeconds() > 4.5) {
+                if (pathTimer.getElapsedTimeSeconds() > 3.75) {
+                    intake.intake();
+                    follower.setMaxPower(1);
+                    follower.followPath(grabPickup1, true);
+                    setPathState(8);
+                }
+                break;
+            case 8:
+                if (pathTimer.getElapsedTimeSeconds() > 2) {
+                    follower.followPath(scorePickup1, true);
+                    setPathState(9);
+                }
+                break;
+            case 9:
+                if (pathTimer.getElapsedTimeSeconds() > 1.5) {
+                    intake.kickSequence();
+                }
+                if(pathTimer.getElapsedTimeSeconds() > 4) {
                     pos = 0;
                     shooter.setFlywheelVelocity(0);
                     follower.followPath(leave);

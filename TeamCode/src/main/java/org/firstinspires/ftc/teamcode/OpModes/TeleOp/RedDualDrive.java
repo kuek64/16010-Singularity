@@ -51,7 +51,7 @@ public class RedDualDrive extends OpMode {
         follower.update();
         shooter.update();
         intake.update();
-        shooter.alignTurret(follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), true, telemetry, follower.getVelocity().getMagnitude(), follower.getVelocity().getTheta());
+        shooter.alignTurret(follower.getPose().getX(), follower.getPose().getY(), follower.getPose().getHeading(), false, telemetry, follower.getVelocity().getMagnitude(), follower.getVelocity().getTheta());
 
         follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
 

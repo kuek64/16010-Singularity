@@ -28,9 +28,9 @@ public class RedFifteenArtifact extends OpMode {
     public int pos;
     public int vel;
 
-    private final Pose bluestartPose = new Pose(29.5, 127, Math.toRadians(180));
+    private final Pose bluestartPose = new Pose(27.5, 126.5, Math.toRadians(180));
     private final Pose bluescorePose = new Pose(60, 83.5, Math.toRadians(180));
-    private final Pose bluepickup1Pose = new Pose(12, 83.5, Math.toRadians(180));
+    private final Pose bluepickup1Pose = new Pose(16, 83.5, Math.toRadians(180));
     private final Pose bluepickup2Pose = new Pose(8, 60, Math.toRadians(180));
     private final Pose bluesetUpPose = new Pose(42, 60, Math.toRadians(180));
     private final Pose blueemptyPose = new Pose(15, 72, Math.toRadians(180));
@@ -39,7 +39,7 @@ public class RedFifteenArtifact extends OpMode {
     private final Pose blueintake3Pose = new Pose(72, 30, Math.toRadians(180));
     private final Pose blueintake4Pose = new Pose(6, 60, Math.toRadians(270));
     private final Pose bluepickup4Pose = new Pose(4, -12, Math.toRadians(270));
-    private final Pose blueleavePose = new Pose(50, 73.5, Math.toRadians(135));
+    private final Pose bluefinalscorePose = new Pose(60, 83.5, Math.toRadians(135));
 
     private final Pose startPose = bluestartPose.mirror();
     private final Pose scorePose = bluescorePose.mirror();
@@ -52,7 +52,7 @@ public class RedFifteenArtifact extends OpMode {
     private final Pose intake3Pose = blueintake3Pose.mirror();
     private final Pose intake4Pose = blueintake4Pose.mirror();
     private final Pose pickup4Pose = bluepickup4Pose.mirror();
-    private final Pose leavePose = blueleavePose.mirror();
+    private final Pose finalScorePose = bluefinalscorePose.mirror();
 
 
 
@@ -101,21 +101,16 @@ public class RedFifteenArtifact extends OpMode {
                 .build();
 
         scorePickup4 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup4Pose, scorePose))
-                .setLinearHeadingInterpolation(intake4Pose.getHeading(), scorePose.getHeading())
-                .build();
-
-        leave = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, leavePose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), leavePose.getHeading())
+                .addPath(new BezierLine(pickup4Pose, finalScorePose))
+                .setLinearHeadingInterpolation(intake4Pose.getHeading(), finalScorePose.getHeading())
                 .build();
     }
 
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                vel = 1220;
-                pos = 250;
+                vel = 1250;
+                pos = 240;
                 follower.setMaxPower(1);
                 follower.followPath(scorePreload);
                 intake.stop();
@@ -123,17 +118,16 @@ public class RedFifteenArtifact extends OpMode {
                 setPathState(1);
                 break;
             case 1:
-                if(pathTimer.getElapsedTimeSeconds() > 1.75) {
+                if(pathTimer.getElapsedTimeSeconds() > 1.85) {
                     intake.kickSequence();
                 }
                 if(pathTimer.getElapsedTimeSeconds() > 3.5) {
                     intake.intake();
                     follower.followPath(grabPickup1,true);
-                    setPathState(2);
-                }
+                    setPathState(2); }
                 break;
             case 2:
-                if(pathTimer.getElapsedTimeSeconds() > 1.4) {
+                if(pathTimer.getElapsedTimeSeconds() > 1.6) {
                     follower.followPath(scorePickup1,true);
                     intake.stop();
                     intake.open();
@@ -144,7 +138,7 @@ public class RedFifteenArtifact extends OpMode {
                 if(pathTimer.getElapsedTimeSeconds() > 1) {
                     intake.kickSequence();
                 }
-                if(pathTimer.getElapsedTimeSeconds() > 3.4) {
+                if(pathTimer.getElapsedTimeSeconds() > 3.2) {
                     intake.intake();
                     follower.setMaxPower(1);
                     follower.followPath(grabPickup2,true);
@@ -152,7 +146,7 @@ public class RedFifteenArtifact extends OpMode {
                 }
                 break;
             case 4:
-                if(pathTimer.getElapsedTimeSeconds() > 3.05) {
+                if(pathTimer.getElapsedTimeSeconds() > 3.35) {
                     follower.followPath(scorePickup2, true);
                     intake.stop();
                     intake.open();
@@ -180,7 +174,7 @@ public class RedFifteenArtifact extends OpMode {
                 if(pathTimer.getElapsedTimeSeconds() > 1.75) {
                     intake.kickSequence();
                 }
-                if(pathTimer.getElapsedTimeSeconds() > 4.3) {
+                if(pathTimer.getElapsedTimeSeconds() > 3.75) {
                     intake.intake();
                     follower.setMaxPower(0.85);
                     follower.followPath(grabPickup4,true);
@@ -188,24 +182,23 @@ public class RedFifteenArtifact extends OpMode {
                 }
                 break;
             case 8:
-                if(pathTimer.getElapsedTimeSeconds() > 3.05) {
+                if(pathTimer.getElapsedTimeSeconds() > 3.55) {
                     follower.followPath(scorePickup4, true);
+                    pos = 0;
                     intake.stop();
                     intake.open();
                     setPathState(9);
                 }
                 break;
             case 9:
-                if(pathTimer.getElapsedTimeSeconds() > 2.65) {
+                if(pathTimer.getElapsedTimeSeconds() > 2.85) {
                     intake.kickSequence();
                 }
-                if(pathTimer.getElapsedTimeSeconds() > 4.15) {
+                if(pathTimer.getElapsedTimeSeconds() > 9) {
                     setPathState(10);
                 }
                 break;
             case 10:
-                pos = 0;
-                follower.followPath(leave);
                 setPathState(-1);
         }
     }
